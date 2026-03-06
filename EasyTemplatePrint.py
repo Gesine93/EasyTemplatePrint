@@ -22,22 +22,23 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5 import QtGui, QtCore
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 import qgis, platform
 from qgis.core import *
 from qgis.gui import *
+from qgis.PyQt.QtWidgets import *
 
 import os, sys
 
 # Initialize Qt resources from file resources.py
-import resources
+#import resources
 # Import the code for the dialog
-from EasyTemplatePrint_dialog import EasyTemplatePrintDialog
-from InstantPrintTool import InstantPrintTool
-
+from .EasyTemplatePrint_dialog import EasyTemplatePrintDialog
+from .InstantPrintTool import InstantPrintTool
+from . import resources
 
 class EasyTemplatePrint(QObject):
     def __init__(self, iface):
@@ -57,15 +58,19 @@ class EasyTemplatePrint(QObject):
             QCoreApplication.installTranslator(self.translator)
 
     def initGui(self):
-        self.toolButton = QToolButton(self.iface.mapNavToolToolBar())
-        self.toolButton.setIcon(QIcon(":/plugins/EasyTemplatePrint/icon.png"))
-        self.toolButton.setText(self.tr("EasyTemplatePrint"))
-        self.toolButton.setToolTip(self.tr("EasyTemplatePrint"))
-        self.toolButton.setCheckable(True)
-        self.toolAction = self.iface.pluginToolBar().addWidget(self.toolButton)
+        self.toolAction = QAction(
+            QIcon(":/plugins/EasyTemplatePrint/icon.png"),
+            self.tr("EasyTemplatePrint"),
+            self.iface.mainWindow()
+        )
+        self.toolAction.setObjectName("EasyTemplatePrint")  
+        self.toolAction.setCheckable(True)
 
-        self.toolButton.toggled.connect(self.__enableTool)
+        self.toolAction.toggled.connect(self.__enableTool)
         self.iface.mapCanvas().mapToolSet.connect(self.__onToolSet)
+
+        self.iface.pluginToolBar().addAction(self.toolAction)
+
 
     def unload(self):
         self.tool.setEnabled(False)
@@ -77,11 +82,13 @@ class EasyTemplatePrint(QObject):
 
     def __onToolSet(self, tool):
         if tool != self.tool:
-            self.toolButton.setChecked(False)
+            self.toolAction.setChecked(False)
 
     def exitAll(self):
         self.dlg.spinBoxScale.setValue(1000)
         self.dlg.spinBoxRotation.setValue(0)
+        self.dlg.LegendCheckbox.setChecked(False)
+        self.dialogui.LegendCheckbox.setEnabled(True)
         self.dlg.close()
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -101,3 +108,5 @@ class EasyTemplatePrint(QObject):
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
             pass
+
+
